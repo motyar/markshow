@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Markdown to Slideshow : MarkShow</title>
+
+        <meta name="description" content="Markdown to Slideshow : MarkShow">
+        <meta name="author" content="Motyar">
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+        <link rel="manifest" href="/site.webmanifest">
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#b504fe">
+        <meta name="msapplication-TileColor" content="#ffffff">
+        <meta name="theme-color" content="#ffffff">
+
+
+        <link rel="stylesheet" href="/reveal.js@4.0.2/dist/reset.css">
+        <link rel="stylesheet" href="/reveal.js@4.0.2/dist/reveal.css">
+        <link rel="stylesheet" href="/reveal.js@4.0.2/dist/theme/white.css" id="theme">
+
+  
+        <!-- Theme used for syntax highlighting of code -->
+        <link rel="stylesheet" href="https://highlightjs.org/static/demo/styles/monokai.css" id="highlight-theme">
+    </head>
+
+<body id="holder">
+    <div id="right">
+        <div class="reveal">
+            <!-- Any section element inside of this container is displayed as a slide -->
+            <div class="slides">
+            <section data-markdown data-separator-vertical="^===" data-separator="^---">
+              <script type="text/template" id="md"></script>
+            </section>
+            </div>
+
+        <footer id="title-footer"><p id="notification"></p></footer>
+        </div>
+ </div>
+
+ <div id="editor"><?=$markdown?></div>
+
+        <script src="/reveal.js@4.0.2/dist/reveal.js"></script>
+        <script src="/reveal.js@4.0.2/plugin/zoom/zoom.js"></script>
+        <script src="/reveal.js@4.0.2/plugin/notes/notes.js"></script>
+        <script src="/reveal.js@4.0.2/plugin/markdown/markdown.js"></script>
+        <script src="/reveal.js@4.0.2/plugin/math/math.js"></script>
+        <script src="/reveal.js@4.0.2/plugin/search/search.js"></script>
+        <script src="/reveal.js@4.0.2/plugin/highlight/highlight.js"></script>
+<script>
+    var hash = window.location.hash;
+
+// Also available as an ES module, see:
+// https://revealjs.com/initialization/
+Reveal.initialize({
+center: true,
+    margin: 0.14,
+    hash: false, 
+    history: true,
+    slideNumber: 't',
+    plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealMath, RevealHighlight ]
+});
+
+</script>
+
+
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.3.1/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.11.0/js-yaml.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FitText.js/1.2.0/jquery.fittext.min.js" defer></script>
+<script>
+var yamlSlideIncrement = 0;
+var doc;
+var inIframe = false;
+var editorHidden = false;
+$(document).ready(function() {
+
+    $("#right").live("click",function(){
+        if($("#editor:visible")){
+            $("#editor").hide();
+            Reveal.configure({"keyboard":true});
+            $("#right").animate({"width":"100%"}, 500, function(){
+                Reveal.toggleOverview(); Reveal.toggleOverview();
+            });
+        }
+
+    });
+
+    $(document).keyup(function( event ) {
+        if(event.target.tagName!="TEXTAREA" && event.keyCode==69 && !inIframe && !editorHidden){
+            event.preventDefault()
+                $("#editor").show();
+            ace.edit("editor").focus();
+            $("#right").animate({"width":"50%"},500, function(){
+                Reveal.toggleOverview(); Reveal.toggleOverview();
+            });
+            Reveal.configure({"keyboard":false});
+        }
+    });
+
+
+    var holder = document;
+    holder.ondragover = function () { return false; };
+    holder.ondrop = function (e) {
+        e.preventDefault();
+
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+            var editor = ace.edit("editor");
+            editor.focus()
+                editor.session.setValue(reader.result);
+            window.updateSlides(reader.result);
+            Reveal.slide( 0, 0);
+        }
+
+        reader.onerror = function(err) {
+            console.log(err, err.loaded, err.loaded === 0, file);
+        }
+
+        var file = e.dataTransfer.files[0];
+        reader.readAsText(file);
+
+    }
+
+
+    $("input:file").live("change", function(event){
+
+        var file = $(this)[0].files[0]
+            var reader = new FileReader();      
+
+        reader.onload = function(e) {
+            var editor = ace.edit("editor");
+            editor.session.setValue(reader.result);
+            window.updateSlides(reader.result);
+            Reveal.slide( 0, 0);
+        }
+
+        reader.onerror = function(err) {
+            console.error(err, err.loaded, err.loaded === 0, file);
+        }
+
+        reader.readAsText(file);
+    });
+
+
+});
+
+$(function() {
+
+    function currentCursorSlide(cursorLine) {
+        var text = ace.edit("editor").getValue();
+        var lines = text.split('\n');
+        var line = "";
+        var slide = 0;
+        var subSlide = 0;
+
+        for (i = 0; i <= cursorLine; i++) {
+            if (line.substring(0,3) === '---') {
+                slide = slide + 1;
+                subSlide = 0;
+            } 
+            else if (line.substring(0,3) === '===') {
+                subSlide = subSlide + 1;
+            }
+
+            line = lines[i];
+        }
+        var slideNumber = {
+        "h" : slide + yamlSlideIncrement,
+            "v" : subSlide
+        };
+        return slideNumber;
+    } 
+
+    function setupAceEditor() {
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/chrome");
+        editor.getSession().setMode("ace/mode/markdown");
+        editor.renderer.setShowGutter(false);
+        editor.renderer.setPadding( 12 );
+        editor.getSession().setUseWrapMode(true);
+        document.getElementById('editor').style.fontSize='14px';
+
+        editor.setShowPrintMargin(false);
+
+        ace.edit('editor').getSession().selection.on('changeCursor', function(e) {
+            var cursorRow = ace.edit('editor').getCursorPosition().row;
+            var currentSlide = currentCursorSlide(cursorRow);
+            Reveal.slide(currentSlide.h, currentSlide.v);
+        });
+
+        ace.edit('editor').getSession().on('change', function() {
+            window.save();
+        });
+
+        window.save();
+        /*
+        editor.focus();
+        Reveal.toggleOverview(); Reveal.toggleOverview();
+         */
+
+    }
+
+    window.updateSlides = function(markdown){
+        if(markdown.trim().startsWith("---")){
+            yamlStr = markdown.trim().split('---')[1].trim();
+            try {
+                doc = jsyaml.safeLoad(yamlStr);
+                // Editor settings
+                if(doc.editor){
+                    if(doc.editor.hidden===true){
+                        $("#right").click();
+                        //$(".reveal").focus();
+                        editorHidden = true;
+                    }	
+
+                    if(doc.editor.keybinding){
+                        ace.edit("editor").setKeyboardHandler("ace/keyboard/"+doc.editor.keybinding);
+                    }	
+
+                    if(doc.editor.theme){
+                        ace.edit("editor").setTheme("ace/theme/"+doc.editor.theme);
+                    }	
+
+                    if(doc.editor.fontSize){
+                        if(doc.editor.fontSize >12){
+                            document.getElementById('editor').style.fontSize= doc.editor.fontSize+'px';
+                        }
+                    }
+
+                    delete doc.editor;
+                }
+                if(doc.theme){
+                    document.getElementById('theme').setAttribute('href','/reveal.js@4.0.2/dist/theme/'+doc.theme.toLowerCase()+'.css');
+                    delete doc.theme;
+                }
+
+                if(doc.highlight){
+                    document.getElementById('highlight-theme').setAttribute('href','//unpkg.com/highlight.js@9.12.0/styles/'+doc.highlight.toLowerCase()+'.css');
+                    delete doc.highlight
+                }
+
+                Reveal.configure(doc);
+                yamlSlideIncrement = -2;
+            } catch (e) {
+                console.error(e);
+            }
+
+            var n = markdown.indexOf("---");
+            var m = markdown.indexOf("---",parseInt(n)+1);
+            var o = markdown.indexOf("---",parseInt(m)+1);
+
+            markdown = markdown.slice(parseInt(m)+3);
+
+        }
+
+
+        $(".slides").html('<section data-markdown data-separator-vertical="^===" data-separator="^---"><script type="text/template">'+markdown+'</sc'+'ript></section>'); 
+        Reveal.configure({"keyboard":false});
+        Reveal.getPlugin('markdown').processSlides(document) ;
+        Reveal.getPlugin('markdown').convertSlides() ;
+
+        Reveal.getPlugin("highlight").init(Reveal);
+        Reveal.getPlugin("math").init(Reveal);
+
+        Reveal.sync();
+        Reveal.toggleOverview(); Reveal.toggleOverview();
+
+        if ((window.location !== window.parent.location ) || (window.location.search.endsWith("print-pdf"))) {
+            $("#right").click();
+            inIframe = true;
+        } 
+
+
+    }
+
+    window.save = function() {
+        var markdown, editor;
+        editor = ace.edit("editor");
+        markdown = editor.getValue();
+        window.updateSlides(markdown);
+        window.location.hash = hash;
+        
+    };
+
+
+    setupAceEditor();
+
+});
+</script>
+<style>
+.speaker-controls-notes{
+white-space: pre;
+}
+
+</style>
+    </body>
+</html>
