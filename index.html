@@ -123,6 +123,21 @@ var doc;
 var inIframe = false;
 var editorHidden = false;
 $(document).ready(function() {
+    
+    // Load source
+    
+    fetch("https://api.allorigins.win/raw?url="+Object.fromEntries(new URLSearchParams(window.location.search))['source'])
+   .then(response => response.text())
+   .then((response) => {
+    
+         var editor = ace.edit("editor");
+            editor.session.setValue(response);
+            window.updateSlides(response);
+            Reveal.slide( 0, 0);
+       console.log(response)
+   })
+   .catch(err => console.log(err));
+    
 
     $("#right").live("click",function(){
         if($("#editor:visible")){
