@@ -127,7 +127,7 @@ $(document).ready(function() {
     source = Object.fromEntries(new URLSearchParams(window.location.search))['source'];
     
     if(source){
-    fetch("https://api.allorigins.win/raw?url="+source)
+    fetch("https://api.allorigins.win/raw?url="+source+"&"+Date.now())
    .then(response => response.text())
    .then((response) => {
     
