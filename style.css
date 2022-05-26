@@ -1,0 +1,92 @@
+.inputfile {
+    width: .1px;
+    height: .1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1
+}
+
+.inputfile+label {
+    max-width: 80%;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+    padding: .625rem 1.25rem
+}
+
+.inputfile-4+label figure {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #d3394c;
+    display: block;
+    padding: 20px;
+    margin: 0 auto 10px
+}
+
+.inputfile+label svg {
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    fill: currentColor;
+    margin-top: -.25em;
+    margin-right: .25em
+}
+
+.inputfile-4+label svg {
+    width: 100%;
+    height: 100%;
+    fill: #f1e5e6
+}
+
+.url {
+    font-size: .6em;
+    width: 80%;
+    cursor: text;
+    padding-left: 6px;
+    padding-right: 6px;
+    text-align: center
+}
+
+#holder.hover {
+    background: gold
+}
+
+#editor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0
+}
+
+#right {
+    width: 50%;
+    height: 100%;
+    position: absolute;
+    right: 0
+}
+
+#editor {
+    width: 50%;
+    position: absolute;
+    left: 0;
+    padding-left: 5px;
+    border-right: 1px solid #ccc
+}
+
+input[type=file] {
+    font-size: .6em
+}
+
+.slide input[type=checkbox] {
+    position: relative;
+    top: 10px;
+    width: 50px;
+    height: 50px
+}
